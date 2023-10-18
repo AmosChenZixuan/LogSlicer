@@ -20,3 +20,11 @@
     batch log into time section and summarize for each
 - Unique errors
     list unique errors and rank by frequency
+
+
+# Setup
+
+```
+poetry install
+bash setup.sh
+```
