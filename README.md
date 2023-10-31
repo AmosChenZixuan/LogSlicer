@@ -28,3 +28,22 @@
 poetry install
 bash setup.sh
 ```
+
+# Requirements
+
+```
+# openai
+openai
+tiktoken
+
+# CAN log
+python-can # read blf file
+cantools # read dbc file and parse blf file
+
+# langchain
+langchain
+sentence-transformer # doc embedding
+torch           # dependency of sentence-transformer
+scikit-learn    # chunk analysis
+matplotlib      # visualization
+```
