@@ -1,9 +1,13 @@
 import os
 import openai
+from dotenv import load_dotenv
+
+load_dotenv()
+
 openai.api_type = "azure"
-openai.api_base = "https://vlv-openai-uk.openai.azure.com/"
-openai.api_version = "2023-07-01-preview"
-openai.api_key = "a6a806d247084cf689348423a6345be4" #os.getenv("OPENAI_API_KEY")
+openai.api_base = os.getenv("AZURE_API_BASE")
+openai.api_version = os.getenv("AZURE_API_VERSION")
+openai.api_key = os.getenv("AZURE_API_KEY")
 
 system_prompt = '''You are a senior software engineer. Your task is to summarize logs.
                     You should point out things that are causing errors and warnings. You should also provide suggestions or solutions if there are any. You are very

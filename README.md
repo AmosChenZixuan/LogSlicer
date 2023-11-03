@@ -46,4 +46,5 @@ sentence-transformer # doc embedding
 torch           # dependency of sentence-transformer
 scikit-learn    # chunk analysis
 matplotlib      # visualization
+python-dotenv # loading environment variables e.g. API keys
 ```
