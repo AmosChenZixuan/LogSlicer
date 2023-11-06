@@ -26,7 +26,7 @@ you should only acknowledge receiving them by replying with "Got part 1/{n_chunk
 you can start analyze all parts I sent to you only after you received all parts.  
 I will start sending them in next query.'''
 
-user_prompt = open("logs/out2000.txt", "r").read()
+user_prompt = open("logs/dlt/out2000.txt", "r").read()
 
 message = [{"role":"system", "content": system_prompt}]
 
@@ -41,7 +41,7 @@ response = openai.ChatCompletion.create(
   engine="openai",
   messages = message,
   temperature=0.7,
-  max_tokens=800,
+  max_tokens=80,
   top_p=0.95,
   frequency_penalty=0,
   presence_penalty=0,
