@@ -3,7 +3,7 @@ from .base_templates import BaseStrTemplate
 class SessionBlockTemplate(BaseStrTemplate):
     def __init__(self, **kargs):
         self.template = '''\
-        START {title} {num_sessions}
+        START {title}
         {content}
         END
         '''
@@ -12,6 +12,6 @@ class SessionBlockTemplate(BaseStrTemplate):
 class SessionLineTemplate(BaseStrTemplate):
     def __init__(self, **kargs):
         self.template = '''\
-        {count}: {payload}
+        {count} {type}: {payload}
         '''
         super().__init__(self.template, **kargs)
