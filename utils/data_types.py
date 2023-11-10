@@ -1,3 +1,5 @@
+from .text_transformers import sub_hex_numeric, sub_perf_counter
+
 class NestedDefaultdict(dict):
     def __init__(self, factory_func, depth, *args, **kwargs):
         self._factory_func = factory_func
@@ -10,3 +12,11 @@ class NestedDefaultdict(dict):
         else:
             self[key] = self._factory_func() 
         return self[key]
+    
+
+class DLTPayload(str):
+    def replace_hex_and_numeric(self, rep='MASK'):
+        return DLTPayload(sub_hex_numeric(self, rep))
+    
+    def replace_value_before_time_unit(self, rep='MASK'):
+        return DLTPayload(sub_perf_counter(self, rep))
