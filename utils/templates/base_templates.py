@@ -1,10 +1,9 @@
 import textwrap
-class BaseStrTemplate:
+
+from langchain.prompts import PromptTemplate
+
+class BaseStrTemplate(PromptTemplate):
     def __init__(self, template, **kargs):
-        self._text = textwrap.dedent(template).strip()
-        if len(kargs) > 0:
-            self._text = self._text.format(**kargs)
-    
-    
-    def __repr__(self):
-        return self._text
+        template = textwrap.dedent(template).strip()
+
+        super().__init__(template=template, **kargs)
