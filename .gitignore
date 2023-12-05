@@ -1,5 +1,8 @@
 logs/
 libs/
+output/
+tmp/
+notebooks/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

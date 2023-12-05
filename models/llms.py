@@ -7,9 +7,9 @@ load_dotenv()
 
 class LLMFactory:
     @staticmethod
-    def create(llm):
+    def create(llm, **kargs):
         if llm == 'azure':
-            return get_azure_openai()
+            return get_azure_openai(**kargs)
 
 
 def get_azure_openai(engine='openai', model='gpt-4'):
@@ -26,4 +26,5 @@ def get_azure_openai(engine='openai', model='gpt-4'):
     return ChatOpenAI(
         engine=engine,
         model_name=model,
+        temperature=0
     )
