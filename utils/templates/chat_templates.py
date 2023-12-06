@@ -26,15 +26,15 @@ class SystemPromptConbineTemplate(BaseStrTemplate):
     def __init__(self, **kargs):
         _template = '''\
         You are a senior software engineer. Your task is to summarize logs. Given the following summaries of different parts of the same log, 
-        combine and refine them into a concise summary. 
+        combine them into a concise summary. 
         Provided summaryies: {{{text}}}
         Draft the summary following these steps:
         1. Identify common points among the summaries. These will be the backbone of the final summary.
         2. Point out unique information in each summary. These could be important details.
         3. Organize information and write a concise summary. It should have one section for summary and one section for suggestions.
         4. Revise to remove any redundant, inaacurate or vague information.
-        5. Write the final summary in formatted Markdown, ensuring the text width does not exceed 100 characters. Use bullet points for content organization
-        Assume the output will be written into a markdown file.
+        5. Write the final summary in formatted Markdown, ensuring the text width does not exceed 100 characters. Use bullet points for content organization.
+        Make sure it has one section for summary and one section for suggestions.
         Final Summary:
         '''
         super().__init__(_template, input_variables = ['text'], **kargs)
