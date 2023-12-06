@@ -29,6 +29,11 @@ poetry install
 bash setup.sh
 ```
 
+Start Service
+```
+uvicorn main:app --reload
+```
+
 # Requirements
 
 ```

@@ -1,5 +1,4 @@
-from flask import Flask, jsonify, request
-from flask_executor import Executor
+from fastapi import FastAPI, BackgroundTasks
 from urllib.parse import urlparse
 import os
 import uuid
@@ -7,8 +6,7 @@ import requests
 
 from pipeline import run_pipeline
 
-app = Flask(__name__)
-executor = Executor(app) # add support for background jobs
+app = FastAPI()
 
 # local datastore. Should be a database instead
 job_status = {}
@@ -20,7 +18,7 @@ def get_filename_from_url(url):
     filename = path_parts[-1]
     return filename
 
-def create_job(url, id):
+def create_job(url: str, id: str):
     try:
         # download file
         job_status[id] = 'downloading'
@@ -40,22 +38,21 @@ def create_job(url, id):
         job_status[id] = 'failed'
         job_result[id] = str(e)
 
-@app.route('/summarize', methods=['GET'])
-def run_summarization_chain():
-    url = request.args.get('url')
+@app.get("/summarize")
+def run_summarization_chain(url: str, background_tasks: BackgroundTasks):
     id = str(uuid.uuid4())
-    executor.submit(create_job, url, id)
-    return jsonify({"message": "Job started", "id": id}), 200
+    background_tasks.add_task(create_job, url, id)
+    return {"message": "Job has been submitted", "id": id}
 
-@app.route('/status/<id>', methods=['GET'])
-def check_status(id):
+@app.get("/status/{id}")
+def read_job_status(id):
     status = job_status.get(id, 'not found')
-    return jsonify({"id": id, "status": status})
+    return {"id": id, "status": status}
 
-@app.route('/result/<id>', methods=['GET'])
-def check_result(id):
+@app.get("/result/{id}")
+def read_job_result(id):
     status = job_result.get(id, 'not found')
-    return jsonify({"id": id, "result": status})
+    return {"id": id, "result": status}
 
 if __name__ == '__main__':
     app.run(port=5000)
