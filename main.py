@@ -1,16 +1,17 @@
 from fastapi import FastAPI, BackgroundTasks
 from urllib.parse import urlparse
+from pymongo import MongoClient
 import os
 import uuid
 import requests
 
 from pipeline import run_pipeline
 
-app = FastAPI()
+client = MongoClient('localhost', 27017)
+db = client['jobs_db']
+jobs = db['jobs']
 
-# local datastore. Should be a database instead
-job_status = {}
-job_result = {}
+app = FastAPI()
 
 def get_filename_from_url(url):
     parsed_url = urlparse(url)
@@ -21,38 +22,47 @@ def get_filename_from_url(url):
 def create_job(url: str, id: str):
     try:
         # download file
-        job_status[id] = 'downloading'
-        r = requests.get(url, allow_redirects=True)
+        jobs.insert_one({'_id': id, 'status': 'downloading', 'result': ''})
+        #r = requests.get(url, allow_redirects=True)
         filename = get_filename_from_url(url)
         filedir = os.path.join('tmp', id)
         os.makedirs(filedir, exist_ok=True)
         filepath = os.path.join(filedir, filename)
-        open(filepath, 'wb').write(r.content)
+        #open(filepath, 'wb').write(r.content)
+        open(filepath, 'w').write('testing') ## TODO
         # execute job
-        job_status[id] = 'executing'
+        jobs.update_one({'_id': id}, {'$set': {'status': 'executing'}})
         res = run_pipeline(filepath)
         # finish job
-        job_status[id] = 'finished'
-        job_result[id] = res
+        jobs.update_one({'_id': id}, {'$set': {'status': 'finished'}})
+        jobs.update_one({'_id': id}, {'$set': {'result': res}})
     except Exception as e:
-        job_status[id] = 'failed'
-        job_result[id] = str(e)
+        jobs.update_one({'_id': id}, {'$set': {'status': 'failed'}})
+        jobs.update_one({'_id': id}, {'$set': {'result': str(e)}})
 
 @app.get("/summarize")
-def run_summarization_chain(url: str, background_tasks: BackgroundTasks):
+async def run_summarization_chain(url: str, background_tasks: BackgroundTasks):
     id = str(uuid.uuid4())
     background_tasks.add_task(create_job, url, id)
     return {"message": "Job has been submitted", "id": id}
 
 @app.get("/status/{id}")
-def read_job_status(id):
-    status = job_status.get(id, 'not found')
-    return {"id": id, "status": status}
+async def read_job_status(id):
+    job = jobs.find_one({'_id': id})
+    if job is not None:
+        return {"status": job['status']}
+    else:
+        return {"status": "not found"}
 
 @app.get("/result/{id}")
-def read_job_result(id):
-    status = job_result.get(id, 'not found')
-    return {"id": id, "result": status}
+async def read_job_result(id):
+    job = jobs.find_one({'_id': id})
+    if job is not None:
+        return {"result": job['result']}
+    else:
+        return {"result": "not found"}
 
-if __name__ == '__main__':
-    app.run(port=5000)
+@app.get("/")
+async def home():
+    job_list = jobs.find()
+    return {"jobs": list(job_list)}

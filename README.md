@@ -29,6 +29,11 @@ poetry install
 bash setup.sh
 ```
 
+Start MongoDB
+```
+mongod --fork --config /etc/mongod.conf
+```
+
 Start Service
 ```
 uvicorn main:app --reload
