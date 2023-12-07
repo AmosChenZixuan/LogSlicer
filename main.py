@@ -42,7 +42,7 @@ def create_job(url: str, id: str):
         jobs.update_one({'_id': id}, {'$set': {'status': 'failed'}})
         jobs.update_one({'_id': id}, {'$set': {'result': str(e)}})
 
-@app.get("/summarize")
+@app.get("/run")
 async def run_summarization_chain(url: str, background_tasks: BackgroundTasks):
     id = str(uuid.uuid4())
     background_tasks.add_task(create_job, url, id)
