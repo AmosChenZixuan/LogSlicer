@@ -1,4 +1,4 @@
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from urllib.parse import urlparse
 from pymongo import MongoClient
@@ -56,8 +56,8 @@ async def read_job_status(id):
     if job is not None:
         return {"status": job['status']}
     else:
-        return JSONResponse(status_code=404,
-                            content = {"message": "Job id not found"})
+        return HTTPException(status_code=404,
+                             detail={"message": "Job id not found"})
 
 @app.get("/result/{id}")
 async def read_job_result(id):
@@ -65,10 +65,19 @@ async def read_job_result(id):
     if job is not None:
         return {"result": job['result']}
     else:
-        return JSONResponse(status_code=404,
-                            content = {"message": "Job id not found"})
+        return HTTPException(status_code=404,
+                             detail={"message": "Job id not found"})
 
 @app.get("/")
 async def home():
     job_list = jobs.find()
     return {"jobs": list(job_list)}
+
+
+@app.delete("/teardown")
+async def delete_all(token: str):
+    if token == "volvo":
+        jobs.delete_many({})
+        return {"message": "All documents have been deleted"}
+    else:
+        raise HTTPException(status_code=403, detail="Invalid token")
