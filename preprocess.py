@@ -14,7 +14,7 @@ def create_dlt_store(msgs):
         msg_type = m.type_string.decode('utf-8') 
         msg_subtype = m.subtype_string.decode('utf-8')
         if msg_type != 'log' \
-            or msg_subtype not in ('!warn', 'error', 'fatal'):
+            or msg_subtype not in ('!warn', 'error', 'fatal'):  # NOTE: warnings are excluded
             continue 
         
         payload = DLTPayload(m.payload_decoded)\
