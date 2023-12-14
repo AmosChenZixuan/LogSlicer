@@ -1,11 +1,12 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from urllib.parse import urlparse
 from pymongo import MongoClient
 import os
 import uuid
 import requests
 import tempfile
+from markdown import markdown
 
 from pipeline import run_pipeline
 
@@ -54,7 +55,7 @@ async def run_summarization_chain(url: str, background_tasks: BackgroundTasks):
                                    "id": id})
 
 @app.get("/status/{id}")
-async def read_job_status(id):
+async def read_job_status(id: str):
     job = jobs.find_one({'_id': id})
     if job is not None:
         return {"status": job['status']}
@@ -63,7 +64,7 @@ async def read_job_status(id):
                              detail={"message": "Job id not found"})
 
 @app.get("/result/{id}")
-async def read_job_result(id):
+async def read_job_result(id: str):
     job = jobs.find_one({'_id': id})
     if job is not None:
         return {"result": job['result']}
@@ -76,6 +77,14 @@ async def home():
     job_list = jobs.find()
     return {"jobs": list(job_list)}
 
+@app.get("/view/{id}", response_class=HTMLResponse)
+async def view_report(id: str):
+    job = jobs.find_one({'_id': id})
+    if job is not None:
+        report_html = markdown(job['result']['report'])
+        return report_html
+    else:
+        raise HTTPException(status_code=404, detail="Job id not found")
 
 @app.delete("/teardown")
 async def delete_all(token: str):
