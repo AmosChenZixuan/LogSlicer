@@ -3,6 +3,8 @@ libs/
 output/
 tmp/
 notebooks/
+compare.py
+.env*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

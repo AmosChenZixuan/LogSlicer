@@ -12,7 +12,7 @@ class LLMFactory:
             return get_azure_openai(**kargs)
 
 
-def get_azure_openai(engine='openai', model='gpt-4'):
+def get_azure_openai():
     openai.api_type = "azure"
     openai.api_version = os.getenv("AZURE_API_VERSION")
     openai.api_base = os.getenv("AZURE_API_BASE")
@@ -24,7 +24,7 @@ def get_azure_openai(engine='openai', model='gpt-4'):
     os.environ["OPENAI_API_BASE"] = openai.api_base
 
     return ChatOpenAI(
-        engine=engine,
-        model_name=model,
-        temperature=0
+        engine=os.getenv("AZURE_CHAT_DEPLOY_NAME"),
+        # model_name=model,
+        temperature=0.7
     )

@@ -31,6 +31,11 @@ bash setup.sh
 
 Start MongoDB
 ```
+sudo mkdir -p data/db
+sudo mongod --dbpath ~/data/db
+```
+
+```
 mongod --fork --config /etc/mongod.conf
 ```
 

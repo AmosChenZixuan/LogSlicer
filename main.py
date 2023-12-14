@@ -24,7 +24,10 @@ def get_filename_from_url(url):
 def create_job(url: str, id: str):
     try:
         # download file
-        jobs.insert_one({'_id': id, 'status': 'downloading', 'result': ''})
+        jobs.insert_one({'_id': id, 
+                         'status': 'downloading', 
+                         'result': '', 
+                         'filename': get_filename_from_url(url)})
         #r = requests.get(url, allow_redirects=True)
         os.makedirs('tmp', exist_ok=True)
         with tempfile.NamedTemporaryFile(dir='tmp', mode='wb', delete=False) as tmp:
@@ -32,9 +35,9 @@ def create_job(url: str, id: str):
             tmp.write(open(url, 'rb').read())
             filepath = tmp.name
 
-        # execute job
-        jobs.update_one({'_id': id}, {'$set': {'status': 'executing'}})
-        res = run_pipeline(filepath)
+            # execute job
+            jobs.update_one({'_id': id}, {'$set': {'status': 'executing'}})
+            res = run_pipeline(filepath)
         # finish job
         jobs.update_one({'_id': id}, {'$set': {'status': 'finished'}})
         jobs.update_one({'_id': id}, {'$set': {'result': res}})
