@@ -7,6 +7,7 @@ import uuid
 import requests
 import tempfile
 from markdown import markdown
+from datetime import datetime
 
 from pipeline import run_pipeline
 
@@ -28,7 +29,8 @@ def create_job(url: str, id: str):
         jobs.insert_one({'_id': id, 
                          'status': 'downloading', 
                          'result': '', 
-                         'filename': get_filename_from_url(url)})
+                         'filename': get_filename_from_url(url),
+                         'timestamp': datetime.utcnow()})
         #r = requests.get(url, allow_redirects=True)
         os.makedirs('tmp', exist_ok=True)
         with tempfile.NamedTemporaryFile(dir='tmp', mode='wb', delete=False) as tmp:
@@ -74,17 +76,26 @@ async def read_job_result(id: str):
 
 @app.get("/")
 async def home():
-    job_list = jobs.find()
-    return {"jobs": list(job_list)[::-1]}
+    job_list = jobs.find().sort('timestamp', -1)
+    return {"jobs": list(job_list)}
 
 @app.get("/view/{id}", response_class=HTMLResponse)
 async def view_report(id: str):
     job = jobs.find_one({'_id': id})
     if job is not None:
         report_html = markdown(job['result']['report'])
+
+        # add navigation buttons
+        previous_job = jobs.find_one({'timestamp': {'$gt': job['timestamp']}}, sort=[('timestamp', 1)])
+        next_job = jobs.find_one({'timestamp': {'$lt': job['timestamp']}}, sort=[('timestamp', -1)])
+        previous_button = f'<button onclick="window.location.href=\'/view/{previous_job["_id"]}\'">Previous</button>' if previous_job else '<button disabled>Previous</button>'
+        next_button = f'<button onclick="window.location.href=\'/view/{next_job["_id"]}\'">Next</button>' if next_job else '<button disabled>Next</button>'
+
         styled_report = f"""
         <div style="background-color: #333; color: #fff; max-width: 100ch; padding: 1em; margin: 0 auto;">
             {report_html}
+            {previous_button}
+            {next_button}
         </div>
         """
         return styled_report
