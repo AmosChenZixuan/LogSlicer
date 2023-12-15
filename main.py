@@ -75,14 +75,19 @@ async def read_job_result(id: str):
 @app.get("/")
 async def home():
     job_list = jobs.find()
-    return {"jobs": list(job_list)}
+    return {"jobs": list(job_list)[::-1]}
 
 @app.get("/view/{id}", response_class=HTMLResponse)
 async def view_report(id: str):
     job = jobs.find_one({'_id': id})
     if job is not None:
         report_html = markdown(job['result']['report'])
-        return report_html
+        styled_report = f"""
+        <div style="background-color: #333; color: #fff; max-width: 100ch; padding: 1em; margin: 0 auto;">
+            {report_html}
+        </div>
+        """
+        return styled_report
     else:
         raise HTTPException(status_code=404, detail="Job id not found")
 
