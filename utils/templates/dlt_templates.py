@@ -12,6 +12,6 @@ class SessionBlockTemplate(BaseStrTemplate):
 class SessionLineTemplate(BaseStrTemplate):
     def __init__(self, **kargs):
         _template = '''\
-        {count} {type}: {payload}
+        [{index}] {count} {type}: {payload}
         '''
-        super().__init__(_template, input_variables = ['count', 'type', 'payload'], **kargs)
+        super().__init__(_template, input_variables = ['index', 'count', 'type', 'payload'], **kargs)

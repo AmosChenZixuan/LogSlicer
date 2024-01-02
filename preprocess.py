@@ -10,7 +10,7 @@ def create_dlt_store(msgs):
     logging.debug("Creating DLT store...")
     dlt_store = NestedDefaultdict(int, 5)
     
-    for m in msgs:
+    for index, m in enumerate(msgs):
         msg_type = m.type_string.decode('utf-8') 
         msg_subtype = m.subtype_string.decode('utf-8')
         if msg_type != 'log' \
@@ -21,7 +21,12 @@ def create_dlt_store(msgs):
                     .replace_hex_and_numeric()\
                     .replace_value_before_time_unit()
         
-        dlt_store[m.ecuid][m.apid][m.ctid][m.seid][(msg_subtype, payload)] += 1 
+        payload = payload.set_dlt_index(index)\
+                        .set_msg_type(msg_subtype)
+        
+        dlt_store[m.ecuid][m.apid][m.ctid][m.seid][payload] += 1 
+        # NOTE: only the first occurence of a payload is stored, so the index will be the first occurence
+        # the payload string is stored as the key, no matter of the index or type
 
     return dlt_store
 
@@ -42,14 +47,15 @@ def create_documents(filename):
             for ctx_name, ctx in app.items():
                 for ses_name, session in ctx.items():
                     counts.append(len(session))
-                    block_name = f"{ecu_name} {app_name} {ctx_name} {ses_name}"
+                    block_name = f"{ecu_name}-{app_name}-{ctx_name}-{ses_name}"
 
                     lines = []
-                    for (mtype, msg), count in session.items():
+                    for payload, count in session.items():
                         total += count
-                        lines.append(SessionLineTemplate().format(count=count,
-                                                                  type=mtype, 
-                                                                  payload=msg))
+                        lines.append(SessionLineTemplate().format(index=payload.dlt_index,
+                                                                  count=count,
+                                                                  type=payload.msg_type,
+                                                                  payload=payload))
                         
                     documents.append(SessionBlockTemplate().format(title=block_name,
                                                                    content='\n'.join(lines)))
@@ -81,5 +87,5 @@ if __name__ == '__main__':
     chunks = chunk_documents(docs)
 
     for chunk in chunks:
-        logging.debug(chunk)
+        logging.debug(chunk.page_content)
     logging.debug(f"Num of Chunks: {len(chunks)}")

@@ -20,3 +20,11 @@ class DLTPayload(str):
     
     def replace_value_before_time_unit(self, rep='MASK'):
         return DLTPayload(sub_perf_counter(self, rep))
+    
+    def set_dlt_index(self, index):
+        self.dlt_index = index
+        return self
+    
+    def set_msg_type(self, type):
+        self.msg_type = type
+        return self

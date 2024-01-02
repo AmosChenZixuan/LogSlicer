@@ -101,6 +101,18 @@ async def view_report(id: str):
         return styled_report
     else:
         raise HTTPException(status_code=404, detail="Job id not found")
+    
+@app.get("/write/{id}")
+async def read_job_result(id: str):
+    job = jobs.find_one({'_id': id})
+    if job is not None:
+        file_name = job['filename']
+        with open(f"output/{file_name}.md", 'w') as f:
+            f.write(job['result']['report'])
+        return {"message": "OK"}
+    else:
+        return HTTPException(status_code=404,
+                             detail={"message": "Job id not found"})
 
 @app.delete("/teardown")
 async def delete_all(token: str):
