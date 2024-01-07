@@ -26,5 +26,5 @@ def get_azure_openai():
     return ChatOpenAI(
         engine=os.getenv("AZURE_CHAT_DEPLOY_NAME"),
         # model_name=model,
-        temperature=0.7
+        temperature=0
     )

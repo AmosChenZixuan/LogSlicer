@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 
 from langchain.docstore.document import Document
-from models.embeddings import EmbeddingsFactory
+from utils.models.embeddings import EmbeddingsFactory
 
 
 def plot(vectors, kmeans):

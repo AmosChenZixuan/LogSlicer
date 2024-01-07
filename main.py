@@ -1,21 +1,21 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
-from urllib.parse import urlparse
-from pymongo import MongoClient
+
 import os
 import uuid
 import requests
 import tempfile
+from urllib.parse import urlparse
 from markdown import markdown
-from datetime import datetime
 
 from pipeline import run_pipeline
+from data_model import Job
 
-client = MongoClient('localhost', 27017)
-db = client['jobs_db']
-jobs = db['jobs']
+# Connect to MongoDB
+jobs = Job()
 
+# Create FastAPI app
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
@@ -28,27 +28,23 @@ def get_filename_from_url(url):
 def create_job(url: str, id: str):
     try:
         # download file
-        jobs.insert_one({'_id': id, 
-                         'status': 'downloading', 
-                         'result': '', 
-                         'filename': get_filename_from_url(url),
-                         'timestamp': datetime.utcnow()})
-        #r = requests.get(url, allow_redirects=True)
+        jobs.insert(id, get_filename_from_url(url))
+        #r = requests.get(url, allow_redirects=True)  ## download log file from url
         os.makedirs('tmp', exist_ok=True)
-        with tempfile.NamedTemporaryFile(dir='tmp', mode='wb', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(dir='tmp', mode='wb', delete=True) as tmp:
             #tmp.write(r.content)
             tmp.write(open(url, 'rb').read())
             filepath = tmp.name
 
             # execute job
-            jobs.update_one({'_id': id}, {'$set': {'status': 'executing'}})
+            jobs.update(id, {'status': 'executing'})
             res = run_pipeline(filepath)
         # finish job
-        jobs.update_one({'_id': id}, {'$set': {'status': 'finished'}})
-        jobs.update_one({'_id': id}, {'$set': {'result': res}})
+        jobs.update(id, {'status': 'finished',
+                        'result': res})
     except Exception as e:
-        jobs.update_one({'_id': id}, {'$set': {'status': 'failed'}})
-        jobs.update_one({'_id': id}, {'$set': {'result': str(e)}})
+        jobs.update(id, {'status': 'failed',
+                        'result': str(e)})
 
 @app.get("/run")
 async def run_summarization_chain(url: str, background_tasks: BackgroundTasks):
@@ -60,7 +56,7 @@ async def run_summarization_chain(url: str, background_tasks: BackgroundTasks):
 
 @app.get("/status/{id}")
 async def read_job_status(id: str):
-    job = jobs.find_one({'_id': id})
+    job = jobs.find(id)
     if job is not None:
         return {"status": job['status']}
     else:
@@ -69,7 +65,7 @@ async def read_job_status(id: str):
 
 @app.get("/result/{id}")
 async def read_job_result(id: str):
-    job = jobs.find_one({'_id': id})
+    job = jobs.find(id)
     if job is not None:
         return {"result": job['result']}
     else:
@@ -78,16 +74,16 @@ async def read_job_result(id: str):
 
 @app.get("/")
 async def home():
-    job_list = jobs.find().sort('timestamp', -1)
+    job_list = jobs.list()
     return {"jobs": list(job_list)}
 
 @app.get("/view/{id}", response_class=HTMLResponse)
 async def view_report(request: Request, id: str):
-    job = jobs.find_one({'_id': id})
+    job = jobs.find(id)
     if job is not None:
         report_html = markdown(job['result']['report'])
-        previous_job = jobs.find_one({'timestamp': {'$gt': job['timestamp']}}, sort=[('timestamp', 1)])
-        next_job = jobs.find_one({'timestamp': {'$lt': job['timestamp']}}, sort=[('timestamp', -1)])
+        previous_job = jobs.find_by({'timestamp': {'$gt': job['timestamp']}}, sort=[('timestamp', 1)])
+        next_job = jobs.find_by({'timestamp': {'$lt': job['timestamp']}}, sort=[('timestamp', -1)])
 
         prev_id = previous_job['_id'] if previous_job else None
         next_id = next_job['_id'] if next_job else None
@@ -102,7 +98,7 @@ async def view_report(request: Request, id: str):
 
 @app.get("/write/{id}")
 async def read_job_result(id: str):
-    job = jobs.find_one({'_id': id})
+    job = jobs.find(id)
     if job is not None:
         file_name = job['filename']
         with open(f"output/{file_name}.md", 'w') as f:
@@ -115,7 +111,7 @@ async def read_job_result(id: str):
 @app.delete("/teardown")
 async def delete_all(token: str):
     if token == "volvo":
-        jobs.delete_many({})
+        jobs._jobs.delete_many({})
         return {"message": "All documents have been deleted"}
     else:
         raise HTTPException(status_code=403, detail="Invalid token")

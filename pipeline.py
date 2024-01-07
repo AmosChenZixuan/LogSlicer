@@ -3,7 +3,7 @@ from langchain.callbacks import get_openai_callback
 
 from preprocess import create_documents, chunk_documents
 from utils.templates import MappingTemplate, ReduceTemplate
-from models.llms import LLMFactory
+from utils.models.llms import LLMFactory
 from chains import get_summarization_chain
 
 
