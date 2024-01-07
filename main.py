@@ -89,6 +89,7 @@ async def view_report(request: Request, id: str):
         next_id = next_job['_id'] if next_job else None
         return templates.TemplateResponse(
             name="view.html", context={"request":request, 
+                                       "filename": job['filename'],
                                        "report_html": report_html, 
                                        "prev_id": prev_id, 
                                        "next_id": next_id}

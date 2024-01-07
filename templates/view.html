@@ -1,18 +1,52 @@
-<div style="background-color: #333; color: #fff; max-width: 100ch; padding: 1em; margin: 0 auto;">
-    <!-- using the 'safe' filter in jinja2 to render the string as html -->
-    {{report_html | safe}}  
-    
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+        }
+        .button {
+            background-color: #fff;
+            font-weight: bold;
+            font-size: 32px;
+            border-radius: 50%;
+            width: 75px;
+            height: 75px;
+            margin: 0 1em; 
+        }
+        .text-box {
+            background-color: #333; 
+            color: #fff; 
+            max-width: 100ch; 
+            padding: 1em; 
+            overflow: auto; 
+            height: 95vh; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if prev_id %}
+            <button class="button" onclick="window.location.href='/view/{{prev_id}}'"> < </button>
+        {% else %}
+            <button class="button" disabled> < </button>
+        {% endif %}
 
-    {% if prev_id %}
-        <button onclick="window.location.href='/view/{{prev_id}}'">Previous</button>
-    {% else %}
-        <button disabled>Previous</button>
-    {% endif %}
+        <div class="text-box">
+            <h1>{{filename}}</h1> <hr>
+            <!-- using the 'safe' filter in jinja2 to render the string as html -->
+            <div>{{report_html | safe}}</div>  
+        </div>
 
-    {% if next_id %}
-        <button onclick="window.location.href='/view/{{next_id}}'">Next</button>
-    {% else %}
-        <button disabled>Next</button>
-    {% endif %}
-
-</div>
+        {% if next_id %}
+            <button class="button" onclick="window.location.href='/view/{{next_id}}'"> > </button>
+        {% else %}
+            <button class="button" disabled> > </button>
+        {% endif %}
+    </div>
+</body>
+</html>
