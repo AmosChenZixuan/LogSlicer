@@ -1,5 +1,6 @@
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import FastAPI, BackgroundTasks, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from urllib.parse import urlparse
 from pymongo import MongoClient
 import os
@@ -16,6 +17,7 @@ db = client['jobs_db']
 jobs = db['jobs']
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 def get_filename_from_url(url):
     parsed_url = urlparse(url)
@@ -80,28 +82,24 @@ async def home():
     return {"jobs": list(job_list)}
 
 @app.get("/view/{id}", response_class=HTMLResponse)
-async def view_report(id: str):
+async def view_report(request: Request, id: str):
     job = jobs.find_one({'_id': id})
     if job is not None:
         report_html = markdown(job['result']['report'])
-
-        # add navigation buttons
         previous_job = jobs.find_one({'timestamp': {'$gt': job['timestamp']}}, sort=[('timestamp', 1)])
         next_job = jobs.find_one({'timestamp': {'$lt': job['timestamp']}}, sort=[('timestamp', -1)])
-        previous_button = f'<button onclick="window.location.href=\'/view/{previous_job["_id"]}\'">Previous</button>' if previous_job else '<button disabled>Previous</button>'
-        next_button = f'<button onclick="window.location.href=\'/view/{next_job["_id"]}\'">Next</button>' if next_job else '<button disabled>Next</button>'
 
-        styled_report = f"""
-        <div style="background-color: #333; color: #fff; max-width: 100ch; padding: 1em; margin: 0 auto;">
-            {report_html}
-            {previous_button}
-            {next_button}
-        </div>
-        """
-        return styled_report
+        prev_id = previous_job['_id'] if previous_job else None
+        next_id = next_job['_id'] if next_job else None
+        return templates.TemplateResponse(
+            name="view.html", context={"request":request, 
+                                       "report_html": report_html, 
+                                       "prev_id": prev_id, 
+                                       "next_id": next_id}
+        )
     else:
         raise HTTPException(status_code=404, detail="Job id not found")
-    
+
 @app.get("/write/{id}")
 async def read_job_result(id: str):
     job = jobs.find_one({'_id': id})

@@ -63,3 +63,12 @@ scikit-learn    # chunk analysis
 matplotlib      # visualization
 python-dotenv # loading environment variables e.g. API keys
 ```
+
+# Trouble Shooting
+
+### Exceeding token limit
+- Try gpt4-turbo, which has much larger context window
+- Reduce the value of "max_token" parameter of llm
+    - this will reduce the length of output
+- Reduce the value of "chunk_size" parameter of preprocess.chunk_documents
+    - this might increase the number of chunks

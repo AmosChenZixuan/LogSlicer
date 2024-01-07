@@ -1,0 +1,18 @@
+<div style="background-color: #333; color: #fff; max-width: 100ch; padding: 1em; margin: 0 auto;">
+    <!-- using the 'safe' filter in jinja2 to render the string as html -->
+    {{report_html | safe}}  
+    
+
+    {% if prev_id %}
+        <button onclick="window.location.href='/view/{{prev_id}}'">Previous</button>
+    {% else %}
+        <button disabled>Previous</button>
+    {% endif %}
+
+    {% if next_id %}
+        <button onclick="window.location.href='/view/{{next_id}}'">Next</button>
+    {% else %}
+        <button disabled>Next</button>
+    {% endif %}
+
+</div>
