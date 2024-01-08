@@ -81,7 +81,7 @@ async def home():
 async def view_report(request: Request, id: str):
     job = jobs.find(id)
     if job is not None:
-        report_html = markdown(job['result']['report'])
+        report_html = markdown(job['result']['report'] if job['status'] == 'finished' else job['result'])
         previous_job = jobs.find_by({'timestamp': {'$gt': job['timestamp']}}, sort=[('timestamp', 1)])
         next_job = jobs.find_by({'timestamp': {'$lt': job['timestamp']}}, sort=[('timestamp', -1)])
 
