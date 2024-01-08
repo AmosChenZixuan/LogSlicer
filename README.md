@@ -7,11 +7,9 @@
 
 # TODO
 
-- LogReader 
-    using python-dlt
-    support dlt-viewer too, in case dependencies become unavailable
-- LogSlicer
-    split log into chunks based on size threshold
+- write a base class for log file loader, making the dlt loader substitutable
+- Documentation
+- Docker file
 
 
 # Strategy

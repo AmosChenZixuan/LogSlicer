@@ -1,4 +1,4 @@
-from .tokenizers import TikTokenizer
+from utils.tokenizers import TikTokenizer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 class DLTBlockSplitter(RecursiveCharacterTextSplitter):

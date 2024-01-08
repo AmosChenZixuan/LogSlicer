@@ -25,7 +25,7 @@ def get_filename_from_url(url):
     filename = path_parts[-1]
     return filename
 
-def create_job(url: str, id: str):
+def create_job(url: str, log_type: str, id: str):
     try:
         # download file
         jobs.insert(id, get_filename_from_url(url))
@@ -38,7 +38,7 @@ def create_job(url: str, id: str):
 
             # execute job
             jobs.update(id, {'status': 'executing'})
-            res = run_pipeline(filepath)
+            res = run_pipeline(filepath, log_type)
         # finish job
         jobs.update(id, {'status': 'finished',
                         'result': res})
@@ -47,9 +47,9 @@ def create_job(url: str, id: str):
                         'result': str(e)})
 
 @app.get("/run")
-async def run_summarization_chain(url: str, background_tasks: BackgroundTasks):
+async def run_summarization_chain(url: str, log_type: str, background_tasks: BackgroundTasks):
     id = str(uuid.uuid4())
-    background_tasks.add_task(create_job, url, id)
+    background_tasks.add_task(create_job, url, log_type, id)
     return JSONResponse(status_code=201,
                         content = {"message": "Job has been submitted", 
                                    "id": id})

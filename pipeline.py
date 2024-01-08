@@ -1,16 +1,16 @@
 import time
 from langchain.callbacks import get_openai_callback
 
-from preprocess import create_documents, chunk_documents
 from utils.templates import MappingTemplate, ReduceTemplate
 from utils.models.llms import LLMFactory
+from utils.preprocess import PreprocessorFactory
 from chains import get_summarization_chain
 
 
-def run_pipeline(filepath):
+def run_pipeline(filepath, log_type):
     # prepare docs
-    documents = create_documents(filepath)
-    chunks = chunk_documents(documents, chunk_size=6000)
+    preprocessor = PreprocessorFactory.create(filepath, log_type)
+    chunks = preprocessor.run(chunk_size=6000)
     # prepare prompts
     map_prompt_template = MappingTemplate()
     reduce_prompt_template = ReduceTemplate() 
@@ -24,7 +24,7 @@ def run_pipeline(filepath):
                             reduce_prompt=reduce_prompt_template,
                             verbose=True)
         
-        output = summary_chain.run(chunks)#[:3])
+        output = summary_chain.run(chunks)
     elapsed_t = round(time.time() - start_time)
     return {
         'report': output,

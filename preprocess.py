@@ -1,8 +1,8 @@
 import argparse
 import logging
 
-from utils.data_types import NestedDefaultdict, DLTPayload
-from utils.text_splitters import DLTBlockSplitter
+from utils.dlt.data_types import NestedDefaultdict, DLTPayload
+from utils.dlt.text_splitters import DLTBlockSplitter
 from utils.templates import SessionBlockTemplate, SessionLineTemplate
 from loaders import DLTLoader
 
